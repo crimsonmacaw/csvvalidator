@@ -72,7 +72,7 @@ The source code for this module lives at:
 
     https://github.com/alimanfoo/csvvalidator
 
-For a complete account of all of the functionality available from this module,
+For a complete account of all the functionality available from this module,
 see the example.py and tests.py modules in the source code repository.
 
 """
@@ -110,16 +110,13 @@ MESSAGES = {
 class RecordError(Exception):
     """Exception representing a validation problem in a record."""
 
-
     def __init__(self, code=None, message=None, details=None):
         self.code = code
         self.message = message
         self.details = details
 
-
     def __str__(self):
         return repr((self.code, self.message, self.details))
-
 
     def __repr__(self):
         return repr((self.code, self.message, self.details))
@@ -131,7 +128,6 @@ class CSVValidator(object):
     types of validation check on a CSV-like data source.
 
     """
-
 
     def __init__(self, field_names):
         """
@@ -149,7 +145,6 @@ class CSVValidator(object):
         self._record_predicates = []
         self._unique_checks = []
         self._skips = []
-
 
     def add_header_check(self,
                          code=HEADER_CHECK_FAILED,
@@ -170,7 +165,6 @@ class CSVValidator(object):
 
         t = code, message
         self._header_checks.append(t)
-
 
     def add_record_length_check(self,
                          code=RECORD_LENGTH_CHECK_FAILED,
@@ -196,7 +190,6 @@ class CSVValidator(object):
         t = code, message, modulus
         self._record_length_checks.append(t)
 
-
     def add_value_check(self, field_name, value_check,
                         code=VALUE_CHECK_FAILED,
                         message=MESSAGES[VALUE_CHECK_FAILED],
@@ -207,8 +200,7 @@ class CSVValidator(object):
         Arguments
         ---------
 
-        `field_name` - the name of the field to attach the value check function
-        to
+        `field_name` - the name of the field to attach the value check function to
 
         `value_check` - a function that accepts a single argument (a value) and
         raises a `ValueError` if the value is not valid
@@ -224,12 +216,11 @@ class CSVValidator(object):
         """
 
         # guard conditions
-        assert field_name in self._field_names, 'unexpected field name: %s' % field_name
+        assert field_name in self._field_names, f'unexpected field name: {field_name}'
         assert callable(value_check), 'value check must be a callable function'
 
         t = field_name, value_check, code, message, modulus
         self._value_checks.append(t)
-
 
     def add_value_predicate(self, field_name, value_predicate,
                         code=VALUE_PREDICATE_FALSE,
@@ -261,12 +252,11 @@ class CSVValidator(object):
 
         """
 
-        assert field_name in self._field_names, 'unexpected field name: %s' % field_name
+        assert field_name in self._field_names, f'unexpected field name: {field_name}'
         assert callable(value_predicate), 'value predicate must be a callable function'
 
         t = field_name, value_predicate, code, message, modulus
         self._value_predicates.append(t)
-
 
     def add_record_check(self, record_check, modulus=1):
         """
@@ -288,7 +278,6 @@ class CSVValidator(object):
 
         t = record_check, modulus
         self._record_checks.append(t)
-
 
     def add_record_predicate(self, record_predicate,
                         code=RECORD_PREDICATE_FALSE,
@@ -323,7 +312,6 @@ class CSVValidator(object):
         t = record_predicate, code, message, modulus
         self._record_predicates.append(t)
 
-
     def add_unique_check(self, key,
                         code=UNIQUE_CHECK_FAILED,
                         message=MESSAGES[UNIQUE_CHECK_FAILED]):
@@ -345,13 +333,12 @@ class CSVValidator(object):
         """
 
         if isinstance(key, str):
-            assert key in self._field_names, 'unexpected field name: %s' % key
+            assert key in self._field_names, f'unexpected field name: {key}'
         else:
             for f in key:
-                assert f in self._field_names, 'unexpected field name: %s' % key
+                assert f in self._field_names, f'unexpected field name: {key}'
         t = key, code, message
         self._unique_checks.append(t)
-
 
     def add_skip(self, skip):
         """
@@ -363,7 +350,6 @@ class CSVValidator(object):
 
         assert callable(skip), 'skip must be a callable function'
         self._skips.append(skip)
-
 
     def validate(self, data,
                  expect_header_row=True,
@@ -402,15 +388,10 @@ class CSVValidator(object):
 
         """
 
-        problems = list()
         problem_generator = self.ivalidate(data, expect_header_row,
                                            ignore_lines, summarize, context,
                                            report_unexpected_exceptions)
-        for i, p in enumerate(problem_generator):
-            if not limit or i < limit:
-                problems.append(p)
-        return problems
-
+        return [p for i, p in enumerate(problem_generator) if not limit or i < limit]
 
     def ivalidate(self, data,
                  expect_header_row=True,
@@ -419,7 +400,7 @@ class CSVValidator(object):
                  context=None,
                  report_unexpected_exceptions=True):
         """
-        Validate `data` and return a iterator over problems found.
+        Validate `data` and return an iterator over problems found.
 
         Use this function rather than validate() if you expect a large number
         of problems.
@@ -449,7 +430,7 @@ class CSVValidator(object):
 
         """
 
-        unique_sets = self._init_unique_sets() # used for unique checks
+        unique_sets = self._init_unique_sets()  # used for unique checks
         for i, r in enumerate(data):
             if expect_header_row and i == ignore_lines:
                 # r is the header row
@@ -469,7 +450,7 @@ class CSVValidator(object):
                     for p in self._apply_each_methods(i, r, summarize,
                                                       report_unexpected_exceptions,
                                                       context):
-                        yield p # may yield a problem if an exception is raised
+                        yield p  # may yield a problem if an exception is raised
                     for p in self._apply_value_checks(i, r, summarize,
                                                       report_unexpected_exceptions,
                                                       context):
@@ -504,16 +485,14 @@ class CSVValidator(object):
                                                     context):
             yield p
 
-
     def _init_unique_sets(self):
         """Initialise sets used for uniqueness checking."""
 
         ks = dict()
         for t in self._unique_checks:
             key = t[0]
-            ks[key] = set() # empty set
+            ks[key] = set()  # empty set
         return ks
-
 
     def _apply_value_checks(self, i, r,
                             summarize=False,
@@ -522,9 +501,9 @@ class CSVValidator(object):
         """Apply value check functions on the given record `r`."""
 
         for field_name, check, code, message, modulus in self._value_checks:
-            if i % modulus == 0: # support sampling
+            if i % modulus == 0:  # support sampling
                 fi = self._field_names.index(field_name)
-                if fi < len(r): # only apply checks if there is a value
+                if fi < len(r):  # only apply checks if there is a value
                     value = r[fi]
                     try:
                         check(value)
@@ -537,7 +516,8 @@ class CSVValidator(object):
                             p['field'] = field_name
                             p['value'] = value
                             p['record'] = r
-                            if context is not None: p['context'] = context
+                            if context is not None:
+                                p['context'] = context
                         yield p
                     except Exception as e:
                         if report_unexpected_exceptions:
@@ -550,11 +530,10 @@ class CSVValidator(object):
                                 p['value'] = value
                                 p['record'] = r
                                 p['exception'] = e
-                                p['function'] = '%s: %s' % (check.__name__,
-                                                            check.__doc__)
-                                if context is not None: p['context'] = context
+                                p['function'] = f'{check.__name__}: {check.__doc__}'
+                                if context is not None:
+                                    p['context'] = context
                             yield p
-
 
     def _apply_header_checks(self, i, r, summarize=False, context=None):
         """Apply header checks on the given record `r`."""
@@ -568,15 +547,15 @@ class CSVValidator(object):
                     p['record'] = tuple(r)
                     p['missing'] = set(self._field_names) - set(r)
                     p['unexpected'] = set(r) - set(self._field_names)
-                    if context is not None: p['context'] = context
+                    if context is not None:
+                        p['context'] = context
                 yield p
-
 
     def _apply_record_length_checks(self, i, r, summarize=False, context=None):
         """Apply record length checks on the given record `r`."""
 
         for code, message, modulus in self._record_length_checks:
-            if i % modulus == 0: # support sampling
+            if i % modulus == 0:  # support sampling
                 if len(r) != len(self._field_names):
                     p = {'code': code}
                     if not summarize:
@@ -584,9 +563,9 @@ class CSVValidator(object):
                         p['row'] = i + 1
                         p['record'] = r
                         p['length'] = len(r)
-                        if context is not None: p['context'] = context
+                        if context is not None:
+                            p['context'] = context
                     yield p
-
 
     def _apply_value_predicates(self, i, r,
                                 summarize=False,
@@ -595,9 +574,9 @@ class CSVValidator(object):
         """Apply value predicates on the given record `r`."""
 
         for field_name, predicate, code, message, modulus in self._value_predicates:
-            if i % modulus == 0: # support sampling
+            if i % modulus == 0:  # support sampling
                 fi = self._field_names.index(field_name)
-                if fi < len(r): # only apply predicate if there is a value
+                if fi < len(r):  # only apply predicate if there is a value
                     value = r[fi]
                     try:
                         valid = predicate(value)
@@ -610,7 +589,8 @@ class CSVValidator(object):
                                 p['field'] = field_name
                                 p['value'] = value
                                 p['record'] = r
-                                if context is not None: p['context'] = context
+                                if context is not None:
+                                    p['context'] = context
                             yield p
                     except Exception as e:
                         if report_unexpected_exceptions:
@@ -623,11 +603,10 @@ class CSVValidator(object):
                                 p['value'] = value
                                 p['record'] = r
                                 p['exception'] = e
-                                p['function'] = '%s: %s' % (predicate.__name__,
-                                                            predicate.__doc__)
-                                if context is not None: p['context'] = context
+                                p['function'] = f'{predicate.__name__}: {predicate.__doc__}'
+                                if context is not None:
+                                    p['context'] = context
                             yield p
-
 
     def _apply_record_checks(self, i, r,
                                  summarize=False,
@@ -636,7 +615,7 @@ class CSVValidator(object):
         """Apply record checks on `r`."""
 
         for check, modulus in self._record_checks:
-            if i % modulus == 0: # support sampling
+            if i % modulus == 0:  # support sampling
                 rdict = self._as_dict(r)
                 try:
                     check(rdict)
@@ -648,8 +627,10 @@ class CSVValidator(object):
                         p['message'] = message
                         p['row'] = i + 1
                         p['record'] = r
-                        if context is not None: p['context'] = context
-                        if e.details is not None: p['details'] = e.details
+                        if context is not None:
+                            p['context'] = context
+                        if e.details is not None:
+                            p['details'] = e.details
                     yield p
                 except Exception as e:
                     if report_unexpected_exceptions:
@@ -659,11 +640,10 @@ class CSVValidator(object):
                             p['row'] = i + 1
                             p['record'] = r
                             p['exception'] = e
-                            p['function'] = '%s: %s' % (check.__name__,
-                                                        check.__doc__)
-                            if context is not None: p['context'] = context
+                            p['function'] = f'{check.__name__}: {check.__doc__}'
+                            if context is not None:
+                                p['context'] = context
                         yield p
-
 
     def _apply_record_predicates(self, i, r,
                                  summarize=False,
@@ -672,7 +652,7 @@ class CSVValidator(object):
         """Apply record predicates on `r`."""
 
         for predicate, code, message, modulus in self._record_predicates:
-            if i % modulus == 0: # support sampling
+            if i % modulus == 0:  # support sampling
                 rdict = self._as_dict(r)
                 try:
                     valid = predicate(rdict)
@@ -682,7 +662,8 @@ class CSVValidator(object):
                             p['message'] = message
                             p['row'] = i + 1
                             p['record'] = r
-                            if context is not None: p['context'] = context
+                            if context is not None:
+                                p['context'] = context
                         yield p
                 except Exception as e:
                     if report_unexpected_exceptions:
@@ -692,11 +673,10 @@ class CSVValidator(object):
                             p['row'] = i + 1
                             p['record'] = r
                             p['exception'] = e
-                            p['function'] = '%s: %s' % (predicate.__name__,
-                                                        predicate.__doc__)
-                            if context is not None: p['context'] = context
+                            p['function'] = f'{predicate.__name__}: {predicate.__doc__}'
+                            if context is not None:
+                                p['context'] = context
                         yield p
-
 
     def _apply_unique_checks(self, i, r, unique_sets,
                              summarize=False,
@@ -706,19 +686,19 @@ class CSVValidator(object):
         for key, code, message in self._unique_checks:
             value = None
             values = unique_sets[key]
-            if isinstance(key, str): # assume key is a field name
+            if isinstance(key, str):  # assume key is a field name
                 fi = self._field_names.index(key)
                 if fi >= len(r):
                     continue
                 value = r[fi]
-            else: # assume key is a list or tuple, i.e., compound key
+            else:  # assume key is a list or tuple, i.e., compound key
                 value = []
                 for f in key:
                     fi = self._field_names.index(f)
                     if fi >= len(r):
                         break
                     value.append(r[fi])
-                value = tuple(value) # enable hashing
+                value = tuple(value)  # enable hashing
             if value in values:
                 p = {'code': code}
                 if not summarize:
@@ -727,10 +707,10 @@ class CSVValidator(object):
                     p['record'] = r
                     p['key'] = key
                     p['value'] = value
-                    if context is not None: p['context'] = context
+                    if context is not None:
+                        p['context'] = context
                 yield p
             values.add(value)
-
 
     def _apply_each_methods(self, i, r,
                             summarize=False,
@@ -752,11 +732,10 @@ class CSVValidator(object):
                             p['row'] = i + 1
                             p['record'] = r
                             p['exception'] = e
-                            p['function'] = '%s: %s' % (f.__name__,
-                                                        f.__doc__)
-                            if context is not None: p['context'] = context
+                            p['function'] = f'{f.__name__}: {f.__doc__}'
+                            if context is not None:
+                                p['context'] = context
                         yield p
-
 
     def _apply_assert_methods(self, i, r,
                               summarize=False,
@@ -787,7 +766,8 @@ class CSVValidator(object):
                         p['message'] = message
                         p['row'] = i + 1
                         p['record'] = r
-                        if context is not None: p['context'] = context
+                        if context is not None:
+                            p['context'] = context
                     yield p
                 except Exception as e:
                     if report_unexpected_exceptions:
@@ -797,11 +777,10 @@ class CSVValidator(object):
                             p['row'] = i + 1
                             p['record'] = r
                             p['exception'] = e
-                            p['function'] = '%s: %s' % (f.__name__,
-                                                        f.__doc__)
-                            if context is not None: p['context'] = context
+                            p['function'] = f'{f.__name__}: {f.__doc__}'
+                            if context is not None:
+                                p['context'] = context
                         yield p
-
 
     def _apply_check_methods(self, i, r,
                               summarize=False,
@@ -823,8 +802,10 @@ class CSVValidator(object):
                         p['message'] = message
                         p['row'] = i + 1
                         p['record'] = r
-                        if context is not None: p['context'] = context
-                        if e.details is not None: p['details'] = e.details
+                        if context is not None:
+                            p['context'] = context
+                        if e.details is not None:
+                            p['details'] = e.details
                     yield p
                 except Exception as e:
                     if report_unexpected_exceptions:
@@ -834,11 +815,10 @@ class CSVValidator(object):
                             p['row'] = i + 1
                             p['record'] = r
                             p['exception'] = e
-                            p['function'] = '%s: %s' % (f.__name__,
-                                                        f.__doc__)
-                            if context is not None: p['context'] = context
+                            p['function'] = f'{f.__name__}: {f.__doc__}'
+                            if context is not None:
+                                p['context'] = context
                         yield p
-
 
     def _apply_finally_assert_methods(self,
                                       summarize=False,
@@ -866,7 +846,8 @@ class CSVValidator(object):
                     p = {'code': code}
                     if not summarize:
                         p['message'] = message
-                        if context is not None: p['context'] = context
+                        if context is not None:
+                            p['context'] = context
                     yield p
                 except Exception as e:
                     if report_unexpected_exceptions:
@@ -874,11 +855,10 @@ class CSVValidator(object):
                         if not summarize:
                             p['message'] = MESSAGES[UNEXPECTED_EXCEPTION] % (e.__class__.__name__, e)
                             p['exception'] = e
-                            p['function'] = '%s: %s' % (f.__name__,
-                                                        f.__doc__)
-                            if context is not None: p['context'] = context
+                            p['function'] = f'{f.__name__}: {f.__doc__}'
+                            if context is not None:
+                                p['context'] = context
                         yield p
-
 
     def _apply_skips(self, i, r,
                      summarize=False,
@@ -899,19 +879,15 @@ class CSVValidator(object):
                         p['row'] = i + 1
                         p['record'] = r
                         p['exception'] = e
-                        p['function'] = '%s: %s' % (skip.__name__,
-                                                    skip.__doc__)
-                        if context is not None: p['context'] = context
+                        p['function'] = f'{skip.__name__}: {skip.__doc__}'
+                        if context is not None:
+                            p['context'] = context
                     yield p
-
 
     def _as_dict(self, r):
         """Convert the record to a dictionary using field names as keys."""
 
-        d = dict()
-        for i, f in enumerate(self._field_names):
-            d[f] = r[i] if i < len(r) else None
-        return d
+        return {f: r[i] if i < len(r) else None for i, f in enumerate(self._field_names)}
 
 
 def enumeration(*args):
@@ -934,6 +910,7 @@ def enumeration(*args):
     else:
         # assume the arguments are the members
         members = args
+
     def checker(value):
         if value not in members:
             raise ValueError(value)
@@ -948,6 +925,7 @@ def match_pattern(regex):
     """
 
     prog = re.compile(regex)
+
     def checker(v):
         result = prog.match(v)
         if result is None:
@@ -964,6 +942,7 @@ def search_pattern(regex):
     """
 
     prog = re.compile(regex)
+
     def checker(v):
         result = prog.search(v)
         if result is None:
@@ -1022,6 +1001,7 @@ def datetime_range_inclusive(min, max, format):
 
     dmin = datetime.strptime(min, format)
     dmax = datetime.strptime(max, format)
+
     def checker(v):
         dv = datetime.strptime(v, format)
         if dv < dmin or dv > dmax:
@@ -1039,6 +1019,7 @@ def datetime_range_exclusive(min, max, format):
 
     dmin = datetime.strptime(min, format)
     dmax = datetime.strptime(max, format)
+
     def checker(v):
         dv = datetime.strptime(v, format)
         if dv <= dmin or dv >= dmax:
@@ -1051,17 +1032,17 @@ def write_problems(problems, file, summarize=False, limit=0):
     Write problems as restructured text to a file (or stdout/stderr).
 
     """
-    w = file.write # convenience variable
+    w = file.write  # convenience variable
     w("""
 =================
 Validation Report
 =================
 """)
-    counts = dict() # store problem counts per problem code
+    counts = {}
     total = 0
     for i, p in enumerate(problems):
         if limit and i >= limit:
-            break # bail out
+            break  # bail out
         if total == 0 and not summarize:
             w("""
 Problems
@@ -1081,7 +1062,7 @@ Problems
                 underline += '-'
             underline += '\n'
             w(underline)
-            for k in sorted(p.keys() - set(['code', 'message', 'context'])):
+            for k in sorted(p.keys() - {'code', 'message', 'context'}):
                 w(':%s: %s\n' % (k, p[k]))
             if 'context' in p:
                 c = p['context']
@@ -1098,4 +1079,3 @@ Found %s%s problem%s in total.
     for code in sorted(counts.keys()):
         w(':%s: %s\n' % (code, counts[code]))
     return total
-
