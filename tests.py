@@ -145,15 +145,15 @@ def test_header_check():
     assert p0['code'] == HEADER_CHECK_FAILED
     assert p0['message'] == MESSAGES[HEADER_CHECK_FAILED]
     assert p0['record'] == ('foo', 'baz')
-    assert p0['missing'] == set(['bar'])
-    assert p0['unexpected'] == set(['baz'])
+    assert p0['missing'] == {'bar'}
+    assert p0['unexpected'] == {'baz'}
     assert p0['row'] == 1
 
     p1 = problems[1]
     assert p1['code'] == 'X1'
     assert p1['message'] == 'custom message'
-    assert p1['missing'] == set(['bar'])
-    assert p1['unexpected'] == set(['baz'])
+    assert p1['missing'] == {'bar'}
+    assert p1['unexpected'] == {'baz'}
     assert p1['record'] == ('foo', 'baz')
     assert p1['row'] == 1
 
@@ -663,7 +663,7 @@ def test_compound_unique_checks_with_variable_record_lengths():
             )
 
     problems = validator.validate(data)
-    print problems
+    print (problems)
     n = len(problems)
     assert n == 1, n
 
