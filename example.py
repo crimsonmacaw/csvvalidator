@@ -91,7 +91,7 @@ def main():
     
     # sanity check arguments
     if not os.path.isfile(args.file):
-        print '%s is not a file' % args.file
+        print(f"{args.file} is not a file")
         sys.exit(1)
 
     with open(args.file, 'r') as f:
@@ -118,7 +118,7 @@ def main():
                        limit=args.limit)
         
         # decide how to exit
-        if problems: # will not work with ivalidate() because it returns an iterator
+        if problems:  # will not work with ivalidate() because it returns an iterator
             sys.exit(1)
         else:
             sys.exit(0)
@@ -126,4 +126,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
