@@ -4,4 +4,7 @@
 dist
 build
 MANIFEST
+.idea
+.vscode
+
 
