@@ -80,7 +80,7 @@ see the example.py and tests.py modules in the source code repository.
 
 import re
 from datetime import datetime
-
+basestring = str
 
 UNEXPECTED_EXCEPTION = 0
 VALUE_CHECK_FAILED = 1
